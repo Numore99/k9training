@@ -100,20 +100,25 @@
 
   function renderGallery() {
     var galleries = $all("[data-gallery]");
-    if (!galleries.length || !DATA.gallery) return;
+    if (!galleries.length) return;
     galleries.forEach(function (gallery) {
-      var items = DATA.gallery.map(function (g) {
+      // escolhe a fonte: data-gallery="fotos" usa fotos (sem vídeo), senão vídeos
+      var isFotos = gallery.getAttribute("data-gallery") === "fotos";
+      var data = isFotos ? DATA.galleryFotos : DATA.gallery;
+      if (!data) return;
+      var items = data.map(function (g) {
         var base = g.img.replace(/\.(webp|jpg|jpeg|png)$/i, "");
+        var hasVideo = !isFotos && g.video !== false;
         var im = '<img src="assets/img/' + esc(g.img) + '" alt="' + esc(g.alt) + '" loading="lazy" ' +
                  'onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'flex\';">';
         var ph = '<div class="gal-ph" style="display:none">' + ICON_PAW + "<span>" + esc(g.alt) + "</span></div>";
-        var vid = g.video !== false
+        var vid = hasVideo
           ? '<video class="gal-video" muted loop playsinline preload="none" ' +
             'poster="assets/img/' + esc(g.img) + '" data-src="assets/video/gal/' + esc(base) + '.mp4"></video>' +
             '<span class="gal-badge"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>Vídeo</span>' +
             '<button type="button" class="gal-play" aria-label="Reproduzir vídeo">' + ICON_PLAY + '</button>'
           : "";
-        return '<figure class="gal-item" data-has-video="' + (g.video !== false ? "1" : "0") + '">' +
+        return '<figure class="gal-item" data-has-video="' + (hasVideo ? "1" : "0") + '">' +
                im + ph + vid +
                '<figcaption class="gal-cap">' + esc(g.alt) + "</figcaption></figure>";
       }).join("");
@@ -121,7 +126,7 @@
       var dots = gallery.querySelector(".gallery-dots");
       if (track) track.innerHTML = items;
       if (dots) {
-        dots.innerHTML = DATA.gallery.map(function (_, i) {
+        dots.innerHTML = data.map(function (_, i) {
           return '<button type="button" aria-label="Ir para a foto ' + (i + 1) + '"></button>';
         }).join("");
       }
