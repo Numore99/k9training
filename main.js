@@ -37,19 +37,48 @@
   function renderServices() {
     var host = $("#js-services");
     if (!host || !DATA.services) return;
-    host.innerHTML = DATA.services.map(function (s) {
+    host.innerHTML = DATA.services.map(function (s, idx) {
       var inc = (s.includes || []).map(function (i) { return "<span>" + esc(i) + "</span>"; }).join("");
       var note = s.note ? '<p class="serv-note">' + esc(s.note) + "</p>" : "";
+      var details = s.details ? '<p class="serv-detail-text">' + esc(s.details) + "</p>" : "";
+      var detailList = (s.detailList || []).map(function (i) { return "<li>" + esc(i) + "</li>"; }).join("");
+      var detailBlock = details || detailList
+        ? '<div class="serv-detail" id="serv-detail-' + idx + '">' +
+          details +
+          (detailList ? '<ul>' + detailList + "</ul>" : "") +
+          "</div>"
+        : "";
       var msg = "Olá, tenho interesse no serviço: " + esc(s.name) + ". Quero mais informações.";
-      return '<article class="serv-card reveal" data-cursor="WhatsApp">' +
-        '<span class="serv-code">' + esc(s.code) + ' / Serviço</span>' +
+      return '<article class="serv-card reveal" data-service-card data-cursor="detalhes" tabindex="0" role="button" aria-expanded="false" aria-controls="serv-detail-' + idx + '">' +
         "<h3>" + esc(s.name) + "</h3>" +
-        '<p class="serv-for"><b style="color:#cdd2d6">Para:</b> ' + esc(s.forWho) + "</p>" +
+        '<p class="serv-for"><b>Para:</b> ' + esc(s.forWho) + "</p>" +
         '<div class="serv-inc">' + inc + "</div>" +
         note +
+        detailBlock +
+        '<span class="serv-more">Ver explicação</span>' +
         '<button class="btn btn-fire" data-wa="' + encodeURIComponent(msg) + '">' + esc(s.cta) + "</button>" +
         "</article>";
     }).join("");
+  }
+
+  function wireServiceCards() {
+    $all("[data-service-card]").forEach(function (card) {
+      function toggle() {
+        var open = card.classList.toggle("open");
+        card.setAttribute("aria-expanded", open ? "true" : "false");
+        var more = card.querySelector(".serv-more");
+        if (more) more.textContent = open ? "Ocultar explicação" : "Ver explicação";
+      }
+      card.addEventListener("click", function (ev) {
+        if (ev.target.closest("button,a")) return;
+        toggle();
+      });
+      card.addEventListener("keydown", function (ev) {
+        if (ev.key !== "Enter" && ev.key !== " ") return;
+        ev.preventDefault();
+        toggle();
+      });
+    });
   }
 
   function renderPlans() {
@@ -293,8 +322,9 @@
   }
 
   function boot() {
-    safe(renderServices, "services");
-    safe(renderPlans, "plans");
+  safe(renderServices, "services");
+  safe(wireServiceCards, "service-cards");
+  safe(renderPlans, "plans");
     safe(renderGallery, "gallery");
     safe(wireGalleryCarousel, "gallery-carousel");
     safe(bindBrand, "brand");
