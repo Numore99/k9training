@@ -43,8 +43,8 @@ ul{list-style:none;}
 body::before{
   content:'';position:fixed;inset:0;z-index:-2;pointer-events:none;
   background:url("assets/img/k9-global-bg.png") center 30% / cover no-repeat;
-  opacity:.68;
-  filter:saturate(1.04) contrast(1.08) brightness(.96);
+  opacity:.65;
+  filter:saturate(.45) contrast(1.08) brightness(.8);
 }
 body::after{
   content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;
