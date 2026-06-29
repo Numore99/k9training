@@ -40,10 +40,18 @@ y **qué clases CSS** usa. Todas las funciones están en [`main.js`](../main.js)
 - **Datos**: editar en `services: [ … ]` de `lib/manifest.js`.
 
 ## Tarjetas de Planes
-- **HTML**: contenedor `#js-plans`.
-- **JS**: `renderPlans()` — una `.plan` por item de `DATA.plans`. El **segundo** plan (índice 1) recibe la clase
-  `.feat` (destacado). Botón "Consultar" con icono de WhatsApp (`ICON_WA`) + `data-wa`.
-- **CSS**: `.plan`, `.plan.feat`, `.btn.btn-wa`.
+- **HTML**: contenedor `#js-plans` (`<div class="plans" id="js-plans">`).
+- **JS**: `renderPlans()` — una `.plan` por item de `DATA.plans`. Todas las tarjetas son **iguales** (sin
+  destacado). Botón "Consultar" con icono de WhatsApp (`ICON_WA`) + `data-wa`.
+- **CSS**: `.plan`, `.btn.btn-wa`.
+- **Animación de entrada**: las 4 tarjetas entran **desde los lados** con retardo escalonado (las 2 de la
+  izquierda desde la izquierda, las 2 de la derecha desde la derecha). Implementado con keyframes
+  `planInLeft` / `planInRight` que se disparan al ganar la clase `.in` (vía el `IntersectionObserver` de
+  `reveal()`), con `animation-delay` 0 / .14 / .28 / .42 s.
+  ⚠️ **Importante**: el estado de reposo de la tarjeta es `transform:none` (en su posición final, solo
+  invisible). El deslizamiento lateral ocurre **solo durante la animación**, nunca en reposo. Si lo cambiás
+  para que la tarjeta repose desplazada (`translateX`), las tarjetas de las puntas quedan fuera de la
+  viewport, el observer nunca les agrega `.in` y **quedan invisibles** (sobre todo en móvil a 1 columna).
 - **Datos**: editar en `plans: [ … ]` de `lib/manifest.js`.
 - ⚠️ El SVG de WhatsApp aquí **no** usa la clase `.ico`; su tamaño lo fija la regla CSS `.btn-wa svg{width:16px}`.
   Sin esa regla, el SVG se estira y ocupa todo el botón (bug ya corregido).

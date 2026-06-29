@@ -86,9 +86,8 @@
     var host = $("#js-plans");
     if (!host || !DATA.plans) return;
     host.innerHTML = DATA.plans.map(function (p, i) {
-      var feat = i === 1 ? " feat" : "";
       var msg = "Olá, quero informações sobre o " + esc(p.name) + ".";
-      return '<article class="plan' + feat + ' reveal" data-cursor="WhatsApp">' +
+      return '<article class="plan reveal" data-cursor="WhatsApp">' +
         "<h3>" + esc(p.name) + "</h3>" +
         '<p class="sum">' + esc(p.summary) + "</p>" +
         '<p class="ideal">' + esc(p.ideal) + "</p>" +

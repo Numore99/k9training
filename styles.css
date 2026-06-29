@@ -75,9 +75,12 @@ body::after{
   box-shadow:0 10px 30px rgba(0,0,0,.45);
 }
 .nav .wrap{display:flex;align-items:center;justify-content:space-between;}
-.nav-logo{font-family:'Bebas Neue',sans-serif;font-size:24px;letter-spacing:3px;color:var(--bone);display:flex;align-items:center;gap:9px;}
+.nav-logo{font-family:'Bebas Neue',sans-serif;color:var(--bone);display:flex;align-items:center;gap:9px;}
 .nav-logo b{color:var(--gold);font-weight:400;}
-.nav-logo .dot{width:8px;height:8px;background:var(--gold);border-radius:50%;box-shadow:0 0 12px var(--gold);}
+.nav-logo .dot{width:8px;height:8px;background:var(--gold);border-radius:50%;box-shadow:0 0 12px var(--gold);flex-shrink:0;}
+.nav-logo .logo-words{display:flex;flex-direction:column;line-height:.92;}
+.nav-logo .logo-marcelo{font-size:10px;letter-spacing:4px;color:var(--gold);}
+.nav-logo .logo-name{font-size:22px;letter-spacing:2.5px;}
 .nav-links{display:flex;align-items:center;gap:26px;}
 .nav-links a{
   font-family:'Space Mono',monospace;font-size:11px;font-weight:700;
@@ -389,7 +392,19 @@ body::after{
 .plans{display:grid;grid-template-columns:repeat(4,1fr);gap:2px;background:transparent;border:1px solid var(--fire-line);}
 .plan{background:rgba(5,4,3,.76);padding:32px 24px;display:flex;flex-direction:column;transition:background .3s,transform .2s;position:relative;overflow:hidden;}
 .plan:hover{background:rgba(13,10,7,.9);transform:translateY(-2px);}
-.plan.feat{background:rgba(31,20,10,.88);border-top:3px solid var(--gold);}
+/* Todas as tarjetas iguais (sem destaque). Entram pelos lados, com leve atraso escalonado.
+   O estado de repouso fica na POSIÇÃO FINAL (só invisível): assim o IntersectionObserver
+   mede a posição real e as tarjetas das pontas não ficam fora da viewport sem nunca aparecer.
+   O deslize lateral acontece só durante a animação, ao ganhar .in. */
+.plans .plan.reveal{opacity:0;transform:none;}
+.plans .plan.reveal.in,
+.plans .plan.reveal.force{opacity:1;transform:none;}
+.plans .plan:nth-child(1).reveal.in{animation:planInLeft 1.1s var(--ease) both;animation-delay:0s;}
+.plans .plan:nth-child(2).reveal.in{animation:planInLeft 1.1s var(--ease) both;animation-delay:.14s;}
+.plans .plan:nth-child(3).reveal.in{animation:planInRight 1.1s var(--ease) both;animation-delay:.28s;}
+.plans .plan:nth-child(4).reveal.in{animation:planInRight 1.1s var(--ease) both;animation-delay:.42s;}
+@keyframes planInLeft{from{opacity:0;transform:translateX(-80px);}to{opacity:1;transform:none;}}
+@keyframes planInRight{from{opacity:0;transform:translateX(80px);}to{opacity:1;transform:none;}}
 .plan h3{font-family:'Oswald',sans-serif;font-weight:700;font-size:22px;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;}
 .plan .sum{font-size:14px;color:#ebe1d4;margin-bottom:6px;}
 .plan .ideal{font-size:13px;color:#d0cbc2;font-weight:400;margin-bottom:20px;flex:1;}
@@ -448,8 +463,11 @@ body::after{
 .splash{position:fixed;inset:0;z-index:200;background:var(--carbon);display:flex;flex-direction:column;
   align-items:center;justify-content:center;gap:26px;transition:opacity .6s,visibility .6s;}
 .splash.hide{opacity:0;visibility:hidden;}
-.splash-logo{font-family:'Bebas Neue',sans-serif;font-size:clamp(54px,12vw,120px);letter-spacing:8px;color:var(--bone);
+.splash-logo{font-family:'Bebas Neue',sans-serif;color:var(--bone);
+  display:flex;flex-direction:column;align-items:center;line-height:.9;text-align:center;
   opacity:0;transform:translateY(14px);animation:splashIn .8s var(--ease) .15s forwards;}
+.splash-logo .logo-marcelo{font-size:clamp(20px,4.5vw,40px);letter-spacing:8px;color:var(--gold);}
+.splash-logo .logo-name{font-size:clamp(40px,9vw,92px);letter-spacing:6px;}
 .splash-logo b{color:var(--fire);font-weight:400;}
 .splash-sub{font-family:'Space Mono',monospace;font-size:11px;letter-spacing:4px;text-transform:uppercase;color:var(--muted);
   opacity:0;animation:splashIn .8s var(--ease) .45s forwards;}
@@ -522,6 +540,7 @@ body::after{
   *{animation-duration:.001s !important;transition-duration:.001s !important;}
   .marquee-track,.gallery-track{animation:none;}
   .reveal{opacity:1;transform:none;}
+  .plans .plan.reveal{opacity:1;transform:none;animation:none;}
 }
 
 /* ===== ÁREA DE ATENDIMENTO (mapa) ===== */
