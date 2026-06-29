@@ -419,6 +419,7 @@ body::after{
 /* ---------------- FOOTER ---------------- */
 .footer{border-top:1px solid var(--fire-line);padding:64px 0 28px;background:rgba(5,4,3,.78);}
 .footer-grid{display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:40px;margin-bottom:44px;}
+.footer-grid-simple{grid-template-columns:1fr;margin-bottom:36px;}
 .footer-brand .big{font-family:'Bebas Neue',sans-serif;font-size:clamp(48px,8vw,82px);line-height:0.85;letter-spacing:3px;color:var(--bone);}
 .footer-brand .big b{color:var(--fire);font-weight:400;}
 .footer-brand p{font-family:'Space Mono',monospace;font-size:12px;letter-spacing:1px;color:var(--muted);margin-top:14px;text-transform:uppercase;}
