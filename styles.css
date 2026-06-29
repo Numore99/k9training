@@ -122,11 +122,14 @@ body::after{
 .btn-ghost{background:rgba(5,4,3,.72);color:var(--bone);border:1px solid var(--fire-line);}
 .btn-ghost:hover{border-color:var(--fire);color:var(--fire);}
 .btn-wa{
-  background:#25D366;color:#06140b;
-  box-shadow:0 10px 0 rgba(0,0,0,.34), 0 0 28px rgba(37,211,102,.28);
+  background:rgba(5,4,3,.72);color:#25D366;
+  border:1px solid rgba(37,211,102,.45);
+  box-shadow:0 10px 0 rgba(0,0,0,.28);
 }
-.btn-wa:hover{background:#34E47A;transform:translateY(-2px) rotate(1deg);}
+.btn-wa:hover{background:rgba(37,211,102,.12);color:#34E47A;border-color:rgba(37,211,102,.7);transform:translateY(-2px) rotate(1deg);}
 .btn .ico{width:18px;height:18px;flex-shrink:0;}
+/* o SVG do WhatsApp não usa a classe .ico; garante tamanho pequeno mesmo assim */
+.btn-wa svg{width:16px;height:16px;flex-shrink:0;}
 
 /* ---------------- HERO ---------------- */
 .hero{
