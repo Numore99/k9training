@@ -171,25 +171,31 @@
       viewport.addEventListener("scroll", function () { window.requestAnimationFrame(update); }, { passive: true });
       window.addEventListener("resize", update);
 
-      var down = false, startX = 0, startScroll = 0;
+      var down = false, startX = 0, startScroll = 0, moved = false;
       viewport.addEventListener("pointerdown", function (e) {
         if (e.pointerType === "touch") return;
         down = true;
+        moved = false;
         startX = e.clientX;
         startScroll = viewport.scrollLeft;
-        viewport.classList.add("dragging");
-        viewport.setPointerCapture(e.pointerId);
       });
       viewport.addEventListener("pointermove", function (e) {
         if (!down) return;
-        e.preventDefault();
-        viewport.scrollLeft = startScroll - (e.clientX - startX);
+        var dx = e.clientX - startX;
+        // só considera "arrasto" se mover mais de 6px (senão é clique)
+        if (Math.abs(dx) > 6) {
+          if (!moved) { moved = true; viewport.classList.add("dragging"); viewport.setPointerCapture(e.pointerId); }
+          e.preventDefault();
+          viewport.scrollLeft = startScroll - dx;
+        }
       });
       function stopDrag() {
         if (!down) return;
         down = false;
-        viewport.classList.remove("dragging");
-        go(index());
+        if (moved) {
+          viewport.classList.remove("dragging");
+          go(index());
+        }
       }
       viewport.addEventListener("pointerup", stopDrag);
       viewport.addEventListener("pointercancel", stopDrag);
@@ -319,10 +325,13 @@
   function heroVideoPan() {
     var v = document.querySelector(".hero-video");
     if (!v) return;
-    // segue o cão conforme o vídeo avança (mais preciso que animação CSS)
-    // pontos: [tempo do clipe (0-1), posição Y]
-    var keys = [[0, 18], [0.55, 30], [0.80, 50], [1, 54]];
-    function posAt(t) {
+    // o vídeo é vertical; em telas largas (PC) recorta mais, então
+    // usamos pontos de enquadramento diferentes para manter o cão visível
+    function isWide() { return window.innerWidth > 760; }
+    // [tempo do clipe (0-1), posição Y] — desktop e mobile
+    var keysWide   = [[0, 30], [0.55, 40], [0.80, 58], [1, 62]];
+    var keysMobile = [[0, 18], [0.55, 30], [0.80, 50], [1, 54]];
+    function posAt(t, keys) {
       for (var i = 1; i < keys.length; i++) {
         if (t <= keys[i][0]) {
           var a = keys[i - 1], b = keys[i];
@@ -334,8 +343,13 @@
     }
     function tick() {
       if (v.duration && !v.paused) {
-        var t = (v.currentTime % v.duration) / v.duration;
-        v.style.objectPosition = "61% " + posAt(t).toFixed(1) + "%";
+        // em PC o vídeo é mostrado inteiro (centralizado), não precisa de pan
+        if (isWide()) {
+          v.style.objectPosition = "center center";
+        } else {
+          var t = (v.currentTime % v.duration) / v.duration;
+          v.style.objectPosition = "61% " + posAt(t, keysMobile).toFixed(1) + "%";
+        }
       }
       requestAnimationFrame(tick);
     }
