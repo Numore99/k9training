@@ -110,6 +110,7 @@
         var vid = g.video !== false
           ? '<video class="gal-video" muted loop playsinline preload="none" ' +
             'poster="assets/img/' + esc(g.img) + '" data-src="assets/video/gal/' + esc(base) + '.mp4"></video>' +
+            '<span class="gal-badge"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>Vídeo</span>' +
             '<button type="button" class="gal-play" aria-label="Reproduzir vídeo">' + ICON_PLAY + '</button>'
           : "";
         return '<figure class="gal-item" data-has-video="' + (g.video !== false ? "1" : "0") + '">' +
