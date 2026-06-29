@@ -316,6 +316,35 @@
     });
   }
 
+  function heroVideoPan() {
+    var v = document.querySelector(".hero-video");
+    if (!v) return;
+    // segue o cão conforme o vídeo avança (mais preciso que animação CSS)
+    // pontos: [tempo do clipe (0-1), posição Y]
+    var keys = [[0, 18], [0.55, 30], [0.80, 50], [1, 54]];
+    function posAt(t) {
+      for (var i = 1; i < keys.length; i++) {
+        if (t <= keys[i][0]) {
+          var a = keys[i - 1], b = keys[i];
+          var r = (t - a[0]) / (b[0] - a[0] || 1);
+          return a[1] + (b[1] - a[1]) * r;
+        }
+      }
+      return keys[keys.length - 1][1];
+    }
+    function tick() {
+      if (v.duration && !v.paused) {
+        var t = (v.currentTime % v.duration) / v.duration;
+        v.style.objectPosition = "61% " + posAt(t).toFixed(1) + "%";
+      }
+      requestAnimationFrame(tick);
+    }
+    v.addEventListener("playing", function () {
+      v.style.animation = "none"; // desliga o fallback CSS quando o vídeo roda
+    });
+    requestAnimationFrame(tick);
+  }
+
   function splash() {
     var sp = $("#js-splash");
     if (!sp) return;
@@ -400,6 +429,7 @@
     safe(wireWAButtons, "wa-buttons");
     safe(wireForm, "form");
     safe(splash, "splash");
+    safe(heroVideoPan, "hero-pan");
     safe(nav, "nav");
     safe(cursor, "cursor");
     safe(year, "year");
