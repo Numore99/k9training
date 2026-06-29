@@ -1,0 +1,15 @@
+{
+  "_comment": "Créditos de fotos. Se usar imagens de stock, anote aqui o autor e a fonte. Se forem fotos próprias do cliente, você pode deixar este arquivo vazio ou apagar as entradas.",
+  "images": [
+    { "file": "hero.jpg",  "author": "", "source": "", "license": "" },
+    { "file": "k9-1.jpg",  "author": "", "source": "", "license": "" },
+    { "file": "k9-2.jpg",  "author": "", "source": "", "license": "" },
+    { "file": "k9-3.jpg",  "author": "", "source": "", "license": "" },
+    { "file": "k9-4.jpg",  "author": "", "source": "", "license": "" },
+    { "file": "k9-5.jpg",  "author": "", "source": "", "license": "" },
+    { "file": "k9-6.jpg",  "author": "", "source": "", "license": "" },
+    { "file": "k9-7.jpg",  "author": "", "source": "", "license": "" },
+    { "file": "k9-8.jpg",  "author": "", "source": "", "license": "" },
+    { "file": "k9-9.jpg",  "author": "", "source": "", "license": "" }
+  ]
+}

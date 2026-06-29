@@ -1,0 +1,24 @@
+COLOQUE SUAS FOTOS AQUI (pasta assets/img/)
+============================================
+
+Nomes que o site procura. Você pode mudar em lib/manifest.js:
+
+  arte-marcelo.jpeg -> arte grande da capa atual
+  hero.jpg          -> alternativa para trocar a capa depois
+  k9-1.jpg    -> galeria 1
+  k9-2.jpg    -> galeria 2
+  k9-3.jpg    -> galeria 3
+  k9-4.jpg    -> galeria 4
+  k9-5.jpg    -> galeria 5
+  k9-6.jpg    -> galeria 6
+  k9-7.jpg    -> galeria 7
+  k9-8.jpg    -> galeria 8
+  k9-9.jpg    -> galeria 9
+
+DICAS
+- Formato: .jpg ou .webp. Peso ideal: menos de 400 KB por foto.
+- hero.jpg funciona melhor na horizontal e com boa resolução, de preferência 1600px de largura ou mais.
+- Se uma foto ainda não existir, o site mostra um marcador e não quebra.
+- Se mudar o nome de um arquivo, atualize também em lib/manifest.js.
+
+Você pode apagar este .txt quando já tiver suas fotos.
