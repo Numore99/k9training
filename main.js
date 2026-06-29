@@ -109,7 +109,11 @@
       var items = data.map(function (g) {
         var base = g.img.replace(/\.(webp|jpg|jpeg|png)$/i, "");
         var hasVideo = !isFotos && g.video !== false;
+        var imStyle = "";
+        if (g.fit) imStyle += "object-fit:" + esc(g.fit) + ";";
+        if (g.pos) imStyle += "object-position:" + esc(g.pos) + ";";
         var im = '<img src="assets/img/' + esc(g.img) + '" alt="' + esc(g.alt) + '" loading="lazy" ' +
+                 (imStyle ? 'style="' + imStyle + '" ' : "") +
                  'onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'flex\';">';
         var ph = '<div class="gal-ph" style="display:none">' + ICON_PAW + "<span>" + esc(g.alt) + "</span></div>";
         var vid = hasVideo
