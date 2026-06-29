@@ -306,6 +306,27 @@ body::after{
   font-family:'Space Mono',monospace;font-size:10px;letter-spacing:1px;color:var(--bone);text-transform:uppercase;
   opacity:0;transition:opacity .3s;}
 .gal-item:hover .gal-cap{opacity:1;}
+.gal-item[data-has-video="1"]{cursor:pointer;}
+/* vídeo na pasarela */
+.gal-video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:2;
+  opacity:0;pointer-events:none;transition:opacity .35s;background:var(--carbon);}
+.gal-item.playing .gal-video{opacity:1;pointer-events:auto;}
+.gal-item.playing img{opacity:0;}
+.gal-item.playing .gal-cap{opacity:0;}
+/* botão play sobre o poster */
+.gal-play{position:absolute;inset:0;z-index:3;margin:auto;width:62px;height:62px;border:none;border-radius:50%;
+  background:rgba(200,148,66,.92);color:var(--carbon);display:grid;place-items:center;cursor:pointer;
+  box-shadow:0 8px 24px rgba(0,0,0,.5);transition:transform .18s,background .2s,opacity .25s;}
+.gal-play svg{width:26px;height:26px;margin-left:3px;}
+.gal-item:hover .gal-play{transform:scale(1.08);background:var(--gold);}
+.gal-item.playing .gal-play{opacity:0;pointer-events:none;}
+.gal-item[data-has-video="0"] .gal-play{display:none;}
+/* indicador "vídeo" no canto */
+.gal-item[data-has-video="1"]::after{content:'\25B6  V\00CDDEO';position:absolute;top:12px;left:12px;z-index:3;
+  font-family:'Space Mono',monospace;font-size:9px;letter-spacing:1px;text-transform:uppercase;
+  color:var(--bone);background:rgba(5,4,3,.7);padding:4px 9px;border:1px solid var(--fire-line);
+  transition:opacity .25s;}
+.gal-item.playing::after{opacity:0;}
 .gallery-btn{
   position:absolute;top:calc(50% - 28px);z-index:3;width:52px;height:52px;border:1px solid var(--fire-line);
   border-radius:50%;background:rgba(8,10,12,.78);color:var(--bone);display:grid;place-items:center;

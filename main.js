@@ -33,6 +33,7 @@
 
   var ICON_WA = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M.057 24l1.687-6.163a11.867 11.867 0 01-1.587-5.946C.16 5.335 5.495 0 12.05 0a11.82 11.82 0 018.413 3.488 11.82 11.82 0 013.48 8.414c-.003 6.557-5.338 11.892-11.893 11.892a11.9 11.9 0 01-5.688-1.448L.057 24zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884a9.86 9.86 0 001.51 5.26l-.999 3.648 3.477-.708zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/></svg>';
   var ICON_PAW = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="6" cy="9" r="2"/><circle cx="10.5" cy="6" r="2"/><circle cx="15" cy="6" r="2"/><circle cx="18" cy="9" r="2"/><path d="M8 16c0-2 2-4 4-4s4 2 4 4 1.5 3-1 3.5c-1.2.24-2-.5-3-.5s-1.8.74-3 .5c-2.5-.5-1-1.5-1-3.5z"/></svg>';
+  var ICON_PLAY = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>';
 
   function renderServices() {
     var host = $("#js-services");
@@ -102,10 +103,17 @@
     if (!galleries.length || !DATA.gallery) return;
     galleries.forEach(function (gallery) {
       var items = DATA.gallery.map(function (g) {
+        var base = g.img.replace(/\.(webp|jpg|jpeg|png)$/i, "");
         var im = '<img src="assets/img/' + esc(g.img) + '" alt="' + esc(g.alt) + '" loading="lazy" ' +
                  'onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'flex\';">';
-        return '<figure class="gal-item">' + im +
-               '<div class="gal-ph" style="display:none">' + ICON_PAW + "<span>" + esc(g.alt) + "</span></div>" +
+        var ph = '<div class="gal-ph" style="display:none">' + ICON_PAW + "<span>" + esc(g.alt) + "</span></div>";
+        var vid = g.video !== false
+          ? '<video class="gal-video" muted loop playsinline preload="none" ' +
+            'poster="assets/img/' + esc(g.img) + '" data-src="assets/video/gal/' + esc(base) + '.mp4"></video>' +
+            '<button type="button" class="gal-play" aria-label="Reproduzir vídeo">' + ICON_PLAY + '</button>'
+          : "";
+        return '<figure class="gal-item" data-has-video="' + (g.video !== false ? "1" : "0") + '">' +
+               im + ph + vid +
                '<figcaption class="gal-cap">' + esc(g.alt) + "</figcaption></figure>";
       }).join("");
       var track = gallery.querySelector(".gallery-track");
@@ -185,6 +193,66 @@
       viewport.addEventListener("pointerup", stopDrag);
       viewport.addEventListener("pointercancel", stopDrag);
       viewport.addEventListener("mouseleave", stopDrag);
+
+      // ---- VÍDEOS: reproduzir um por vez, pausar ao deslizar ----
+      function allVideos() { return $all(".gal-video", track); }
+
+      function pauseAll(except) {
+        allVideos().forEach(function (v) {
+          var fig = v.closest(".gal-item");
+          if (v !== except) {
+            if (!v.paused) v.pause();
+            if (fig) fig.classList.remove("playing");
+          }
+        });
+      }
+
+      function playVideo(fig) {
+        var v = fig.querySelector(".gal-video");
+        if (!v) return;
+        pauseAll(v);
+        // lazy: carrega o arquivo só na primeira reprodução
+        if (!v.getAttribute("src") && v.dataset.src) {
+          v.setAttribute("src", v.dataset.src);
+        }
+        fig.classList.add("playing");
+        var p = v.play();
+        if (p && p.catch) p.catch(function () { fig.classList.remove("playing"); });
+      }
+
+      function toggleVideo(fig) {
+        var v = fig.querySelector(".gal-video");
+        if (!v) return;
+        if (v.paused) playVideo(fig);
+        else { v.pause(); fig.classList.remove("playing"); }
+      }
+
+      items().forEach(function (fig) {
+        if (fig.getAttribute("data-has-video") !== "1") return;
+        var playBtn = fig.querySelector(".gal-play");
+        var v = fig.querySelector(".gal-video");
+        // clique no slide ou no botão reproduz/pausa
+        fig.addEventListener("click", function (e) {
+          if (viewport.classList.contains("dragging")) return;
+          if (e.target.closest("a")) return;
+          toggleVideo(fig);
+        });
+        if (playBtn) playBtn.addEventListener("click", function (e) {
+          e.stopPropagation();
+          toggleVideo(fig);
+        });
+        if (v) v.addEventListener("ended", function () { fig.classList.remove("playing"); });
+      });
+
+      // pausa o vídeo ativo ao trocar de slide
+      var lastIndex = index();
+      viewport.addEventListener("scroll", function () {
+        window.requestAnimationFrame(function () {
+          var i = index();
+          if (i !== lastIndex) { lastIndex = i; pauseAll(null); }
+        });
+      }, { passive: true });
+
       update();
     });
   }
