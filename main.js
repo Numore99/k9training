@@ -269,7 +269,7 @@
         if (en.isIntersecting) en.target.classList.add("in");
         else en.target.classList.remove("in");
       });
-    }, { threshold: 0.08, rootMargin: "-8% 0px -8% 0px" });
+    }, { threshold: 0.24, rootMargin: "-20% 0px -18% 0px" });
     els.forEach(function (el) { io.observe(el); });
   }
 

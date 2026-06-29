@@ -231,6 +231,24 @@ body::after{
 .serv-more::after{content:'+';font-size:14px;line-height:1;color:var(--fire);}
 .serv-card.open .serv-more::after{content:'-';}
 .serv-card .btn{margin-top:auto;width:100%;justify-content:center;font-size:12.5px;padding:13px;}
+.home-serv-grid{
+  gap:28px;border:0;background:transparent;max-width:1040px;margin:0 auto;
+}
+.home-serv-grid .serv-card{
+  min-height:235px;padding:24px 24px;background:rgba(2,2,2,.86);
+  border:1px solid rgba(200,148,66,.36);border-top:1px solid rgba(200,148,66,.5);
+}
+.home-serv-grid .serv-card.reveal{
+  opacity:0;transform:translateX(-62px);
+  transition:opacity 1.65s var(--ease),transform 1.65s var(--ease);
+}
+.home-serv-grid .serv-card:nth-child(even).reveal{transform:translateX(62px);}
+.home-serv-grid .serv-card.reveal.in,
+.home-serv-grid .serv-card.reveal.force{opacity:1;transform:none;}
+.home-serv-grid .serv-card:hover{background:rgba(3,3,3,.94);}
+.home-serv-grid .serv-card h3{font-size:23px;margin:4px 0 10px;}
+.home-serv-grid .serv-for{font-size:13px;line-height:1.55;margin-bottom:18px;}
+.home-serv-grid .btn{padding:11px 18px;font-size:12px;box-shadow:0 7px 0 rgba(0,0,0,.26);}
 
 /* ---------------- PROBLEMAS ---------------- */
 .prob-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:2px;background:transparent;border:1px solid var(--fire-line);}
@@ -369,7 +387,7 @@ body::after{
 @keyframes loadBar{to{transform:scaleX(1);}}
 
 /* ---------------- REVEAL (com segurança) ---------------- */
-.reveal{opacity:0;transform:translateY(26px);transition:opacity .7s var(--ease),transform .7s var(--ease);}
+.reveal{opacity:0;transform:translateY(38px);transition:opacity 1.25s var(--ease),transform 1.25s var(--ease);}
 .reveal.in,.reveal.force{opacity:1;transform:none;}
 /* Se o JS não rodar, o conteúdo aparece mesmo assim. */
 .no-js .reveal{opacity:1;transform:none;}
@@ -403,6 +421,10 @@ body::after{
   .section{padding:64px 0;}
   .metodo-blocks{grid-template-columns:1fr;}
   .serv-grid,.plans,.proc{grid-template-columns:1fr;}
+  .home-serv-grid{gap:24px;}
+  .home-serv-grid .serv-card{min-height:190px;padding:22px 22px;}
+  .home-serv-grid .serv-card h3{font-size:24px;margin-top:0;}
+  .home-serv-grid .serv-for{margin-bottom:16px;}
   .contact{grid-template-columns:1fr;gap:32px;}
   .form-row{grid-template-columns:1fr;}
   .footer-grid{grid-template-columns:1fr;gap:28px;}
