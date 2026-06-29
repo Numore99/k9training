@@ -121,8 +121,11 @@ body::after{
 .btn-fire:hover{background:var(--gold);transform:translateY(-2px) rotate(-1deg);}
 .btn-ghost{background:rgba(5,4,3,.72);color:var(--bone);border:1px solid var(--fire-line);}
 .btn-ghost:hover{border-color:var(--fire);color:var(--fire);}
-.btn-wa{background:var(--tactical);color:var(--bone);}
-.btn-wa:hover{background:#7d704c;transform:translateY(-2px) rotate(1deg);}
+.btn-wa{
+  background:#25D366;color:#06140b;
+  box-shadow:0 10px 0 rgba(0,0,0,.34), 0 0 28px rgba(37,211,102,.28);
+}
+.btn-wa:hover{background:#34E47A;transform:translateY(-2px) rotate(1deg);}
 .btn .ico{width:18px;height:18px;flex-shrink:0;}
 
 /* ---------------- HERO ---------------- */
@@ -342,9 +345,9 @@ body::after{
 
 /* ---------------- WHATSAPP FLUTUANTE ---------------- */
 .wa-float{position:fixed;right:18px;bottom:18px;z-index:130;display:flex;align-items:center;gap:0;
-  background:var(--tactical);color:var(--bone);border-radius:50px;padding:0;height:58px;overflow:hidden;
-  box-shadow:0 8px 30px rgba(0,0,0,.5);transition:padding .3s,background .2s;}
-.wa-float:hover{background:#6c9159;}
+  background:#25D366;color:#06140b;border-radius:50px;padding:0;height:58px;overflow:hidden;
+  box-shadow:0 8px 30px rgba(0,0,0,.5), 0 0 26px rgba(37,211,102,.34);transition:padding .3s,background .2s,transform .15s;}
+.wa-float:hover{background:#34E47A;transform:translateY(-2px);}
 .wa-float svg{width:30px;height:30px;margin:14px;flex-shrink:0;}
 .wa-float .lbl{font-family:'Oswald',sans-serif;font-weight:600;font-size:14px;letter-spacing:1px;text-transform:uppercase;
   max-width:0;opacity:0;white-space:nowrap;transition:max-width .35s,opacity .3s,padding .3s;}
