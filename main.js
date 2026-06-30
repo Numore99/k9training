@@ -210,181 +210,145 @@
     });
   }
 
+  // Carrossel em fluxo contínuo (marquee): as fotos deslizam sozinhas para a
+  // esquerda. O usuário pode pausar (passar o mouse) e arrastar para os dois
+  // lados, com mouse ou no celular. Loop sem salto via clones dos itens.
   function wireGalleryCarousel() {
     $all("[data-gallery]").forEach(function (gallery) {
       var viewport = gallery.querySelector(".gallery-viewport");
       var track = gallery.querySelector(".gallery-track");
       var prev = gallery.querySelector(".gallery-prev");
       var next = gallery.querySelector(".gallery-next");
-      var dots = $all(".gallery-dots button", gallery);
+      var dotsWrap = gallery.querySelector(".gallery-dots");
       if (!viewport || !track) return;
 
-      function items() { return $all(".gal-item", track); }
-      function step() {
-        var first = items()[0];
-        if (!first) return viewport.clientWidth;
-        var styles = getComputedStyle(track);
-        var gap = parseFloat(styles.columnGap || styles.gap || 0) || 0;
-        return first.getBoundingClientRect().width + gap;
+      var originals = $all(".gal-item", track);
+      if (originals.length <= 1) return;
+
+      // pontos não fazem sentido num fluxo contínuo
+      if (dotsWrap) dotsWrap.style.display = "none";
+      // desliga o "snap" e a rolagem suave para o movimento ser fluido
+      viewport.style.scrollSnapType = "none";
+      viewport.style.scrollBehavior = "auto";
+
+      // clona todos os itens para o loop ser contínuo (sem salto)
+      originals.forEach(function (it) {
+        var c = it.cloneNode(true);
+        c.setAttribute("aria-hidden", "true");
+        c.classList.add("is-clone");
+        track.appendChild(c);
+      });
+
+      var SPEED = 0.05;       // px por milissegundo (~50px/s) — fotos para a esquerda
+      var RESUME_MS = 2500;   // retoma sozinho um tempo depois de soltar
+      var prefersReduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      var paused = prefersReduced;
+      var resumeTimer = null;
+      var lastT = 0;
+      var cw = 0; // largura de um ciclo (todos os originais + gaps)
+
+      function recalc() {
+        var clone = track.querySelector(".gal-item.is-clone");
+        cw = clone ? clone.offsetLeft : track.scrollWidth / 2;
       }
-      function index() {
-        var s = step();
-        return s ? Math.round(viewport.scrollLeft / s) : 0;
-      }
-      function go(i) {
-        var count = items().length;
-        if (!count) return;
-        var target = Math.max(0, Math.min(i, count - 1));
-        viewport.scrollTo({ left: target * step(), behavior: "smooth" });
-      }
-      function update() {
-        var active = index();
-        dots.forEach(function (dot, i) {
-          dot.classList.toggle("active", i === active);
-          dot.setAttribute("aria-current", i === active ? "true" : "false");
-        });
-        if (prev) prev.disabled = active <= 0;
-        if (next) next.disabled = active >= items().length - 1;
+      // mantém o scroll dentro de [0, cw) → gira nos dois sentidos sem salto
+      function wrap() {
+        if (cw <= 0) return;
+        var sl = viewport.scrollLeft;
+        if (sl >= cw) viewport.scrollLeft = sl - cw;
+        else if (sl < 0) viewport.scrollLeft = sl + cw;
       }
 
-      if (prev) prev.addEventListener("click", function () { go(index() - 1); });
-      if (next) next.addEventListener("click", function () { go(index() + 1); });
-      dots.forEach(function (dot, i) { dot.addEventListener("click", function () { go(i); }); });
-      viewport.addEventListener("scroll", function () { window.requestAnimationFrame(update); }, { passive: true });
-      window.addEventListener("resize", update);
+      function frame(t) {
+        if (!lastT) lastT = t;
+        var dt = t - lastT;
+        lastT = t;
+        if (dt > 50) dt = 50; // evita salto após aba em segundo plano
+        if (cw <= 0) recalc();
+        if (!paused) {
+          viewport.scrollLeft += SPEED * dt;
+          wrap();
+        }
+        window.requestAnimationFrame(frame);
+      }
 
+      function pause() {
+        paused = true;
+        if (resumeTimer) { window.clearTimeout(resumeTimer); resumeTimer = null; }
+      }
+      function resumeSoon() {
+        if (prefersReduced) return;
+        if (resumeTimer) window.clearTimeout(resumeTimer);
+        resumeTimer = window.setTimeout(function () { lastT = 0; paused = false; }, RESUME_MS);
+      }
+
+      // ---------- ARRASTAR COM MOUSE ----------
       var down = false, startX = 0, startScroll = 0, moved = false;
       viewport.addEventListener("pointerdown", function (e) {
-        if (e.pointerType === "touch") return;
-        down = true;
-        moved = false;
-        startX = e.clientX;
-        startScroll = viewport.scrollLeft;
+        if (e.pointerType === "touch") return; // toque usa rolagem nativa
+        down = true; moved = false;
+        startX = e.clientX; startScroll = viewport.scrollLeft;
+        pause();
       });
       viewport.addEventListener("pointermove", function (e) {
         if (!down) return;
         var dx = e.clientX - startX;
-        // só considera "arrasto" se mover mais de 6px (senão é clique)
-        if (Math.abs(dx) > 6) {
+        if (Math.abs(dx) > 4) {
           if (!moved) { moved = true; viewport.classList.add("dragging"); viewport.setPointerCapture(e.pointerId); }
           e.preventDefault();
           viewport.scrollLeft = startScroll - dx;
+          wrap();
         }
       });
-      function stopDrag() {
+      function endDrag() {
         if (!down) return;
         down = false;
-        if (moved) {
-          viewport.classList.remove("dragging");
-          go(index());
-        }
+        viewport.classList.remove("dragging");
+        resumeSoon();
       }
-      viewport.addEventListener("pointerup", stopDrag);
-      viewport.addEventListener("pointercancel", stopDrag);
-      viewport.addEventListener("mouseleave", stopDrag);
+      viewport.addEventListener("pointerup", endDrag);
+      viewport.addEventListener("pointercancel", endDrag);
 
-      // ---- VÍDEOS: reproduzir um por vez, pausar ao deslizar ----
-      function allVideos() { return $all(".gal-video", track); }
-
-      function pauseAll(except) {
-        allVideos().forEach(function (v) {
-          var fig = v.closest(".gal-item");
-          if (v !== except) {
-            if (!v.paused) v.pause();
-            if (fig) fig.classList.remove("playing");
-          }
-        });
-      }
-
-      function playVideo(fig) {
-        var v = fig.querySelector(".gal-video");
-        if (!v) return;
-        pauseAll(v);
-        // lazy: carrega o arquivo só na primeira reprodução
-        if (!v.getAttribute("src") && v.dataset.src) {
-          v.setAttribute("src", v.dataset.src);
-        }
-        fig.classList.add("playing");
-        var p = v.play();
-        if (p && p.catch) p.catch(function () { fig.classList.remove("playing"); });
-      }
-
-      function toggleVideo(fig) {
-        var v = fig.querySelector(".gal-video");
-        if (!v) return;
-        if (v.paused) playVideo(fig);
-        else { v.pause(); fig.classList.remove("playing"); }
-      }
-
-      items().forEach(function (fig) {
-        if (fig.getAttribute("data-has-video") !== "1") return;
-        var playBtn = fig.querySelector(".gal-play");
-        var v = fig.querySelector(".gal-video");
-        // clique no slide ou no botão reproduz/pausa
-        fig.addEventListener("click", function (e) {
-          if (viewport.classList.contains("dragging")) return;
-          if (e.target.closest("a")) return;
-          toggleVideo(fig);
-        });
-        if (playBtn) playBtn.addEventListener("click", function (e) {
-          e.stopPropagation();
-          toggleVideo(fig);
-        });
-        if (v) v.addEventListener("ended", function () { fig.classList.remove("playing"); });
+      // passar o mouse por cima NÃO pausa; só pausa segurando o clique.
+      // se o ponteiro sair durante o arrasto, encerra o arrasto com segurança.
+      viewport.addEventListener("pointerleave", function (e) {
+        if (e.pointerType === "touch") return;
+        endDrag();
       });
 
-      // pausa o vídeo ativo ao trocar de slide
-      var lastIndex = index();
-      viewport.addEventListener("scroll", function () {
-        window.requestAnimationFrame(function () {
-          var i = index();
-          if (i !== lastIndex) { lastIndex = i; pauseAll(null); }
-        });
-      }, { passive: true });
+      // ---------- TOQUE (celular): rolagem nativa nos dois sentidos ----------
+      viewport.addEventListener("touchstart", pause, { passive: true });
+      viewport.addEventListener("touchend", resumeSoon, { passive: true });
+      viewport.addEventListener("touchcancel", resumeSoon, { passive: true });
 
-      // ---- AUTOPLAY: o carrossel desliza sozinho; pausa quando o usuário interage ----
-      var AUTO_MS = 3800, RESUME_MS = 6000;
-      var prefersReduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-      var autoTimer = null, resumeTimer = null;
-      function autoNext() {
-        var count = items().length;
-        if (count <= 1) return;
-        var i = index();
-        go(i >= count - 1 ? 0 : i + 1); // volta ao início ao chegar no fim
+      // roda do mouse / trackpad
+      viewport.addEventListener("wheel", function () { pause(); resumeSoon(); }, { passive: true });
+      // mantém o loop ao rolar nativamente (toque/trackpad)
+      viewport.addEventListener("scroll", function () { window.requestAnimationFrame(wrap); }, { passive: true });
+
+      // ---------- SETAS: empurra um item e segue o fluxo ----------
+      function nudge(dir) {
+        var styles = getComputedStyle(track);
+        var gap = parseFloat(styles.columnGap || styles.gap || 0) || 0;
+        var stepPx = originals[0].getBoundingClientRect().width + gap;
+        pause();
+        viewport.scrollLeft += dir * stepPx;
+        wrap();
+        resumeSoon();
       }
-      function startAuto() {
-        if (prefersReduced || autoTimer || items().length <= 1) return;
-        autoTimer = window.setInterval(autoNext, AUTO_MS);
-      }
-      function stopAuto() {
-        if (autoTimer) { window.clearInterval(autoTimer); autoTimer = null; }
-      }
-      function pauseAuto() {
-        stopAuto();
-        if (resumeTimer) { window.clearTimeout(resumeTimer); resumeTimer = null; }
-      }
-      function resumeAutoSoon() {
-        if (prefersReduced) return;
-        if (resumeTimer) window.clearTimeout(resumeTimer);
-        resumeTimer = window.setTimeout(startAuto, RESUME_MS);
-      }
-      // qualquer interação pausa; retoma sozinho um tempo depois
-      viewport.addEventListener("pointerenter", pauseAuto);
-      viewport.addEventListener("pointerleave", resumeAutoSoon);
-      viewport.addEventListener("pointerdown", pauseAuto);
-      viewport.addEventListener("pointerup", resumeAutoSoon);
-      viewport.addEventListener("touchstart", pauseAuto, { passive: true });
-      viewport.addEventListener("touchend", resumeAutoSoon, { passive: true });
-      viewport.addEventListener("wheel", function () { pauseAuto(); resumeAutoSoon(); }, { passive: true });
-      [prev, next].forEach(function (b) { if (b) b.addEventListener("click", function () { pauseAuto(); resumeAutoSoon(); }); });
-      dots.forEach(function (d) { d.addEventListener("click", function () { pauseAuto(); resumeAutoSoon(); }); });
-      // pausa quando a aba não está visível (economiza recursos)
+      if (prev) { prev.disabled = false; prev.addEventListener("click", function () { nudge(-1); }); }
+      if (next) { next.disabled = false; next.addEventListener("click", function () { nudge(1); }); }
+
+      // pausa quando a aba não está visível
       document.addEventListener("visibilitychange", function () {
-        if (document.hidden) stopAuto(); else resumeAutoSoon();
+        if (document.hidden) paused = true;
+        else if (!prefersReduced) { lastT = 0; paused = false; }
       });
-      startAuto();
 
-      update();
+      window.addEventListener("resize", recalc);
+      window.addEventListener("load", recalc);
+      recalc();
+      window.requestAnimationFrame(frame);
     });
   }
 
