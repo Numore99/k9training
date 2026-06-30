@@ -41,6 +41,18 @@
     host.innerHTML = DATA.services.map(function (s, idx) {
       var inc = (s.includes || []).map(function (i) { return "<span>" + esc(i) + "</span>"; }).join("");
       var note = s.note ? '<p class="serv-note">' + esc(s.note) + "</p>" : "";
+      var price = s.price
+        ? '<div class="serv-price"><strong>' + esc(s.price) + '</strong>' +
+          (s.priceDetail ? '<span>' + esc(s.priceDetail) + '</span>' : '') +
+          '</div>'
+        : "";
+      var priceOptions = (s.priceOptions || []).map(function (p) {
+        return '<div class="serv-price-row">' +
+          '<div><b>' + esc(p.label) + '</b><span>' + esc(p.detail) + '</span></div>' +
+          '<strong>' + esc(p.value) + '</strong>' +
+          '</div>';
+      }).join("");
+      var priceTable = priceOptions ? '<div class="serv-price-table">' + priceOptions + '</div>' : "";
       var details = s.details ? '<p class="serv-detail-text">' + esc(s.details) + "</p>" : "";
       var detailList = (s.detailList || []).map(function (i) { return "<li>" + esc(i) + "</li>"; }).join("");
       var detailBlock = details || detailList
@@ -61,6 +73,8 @@
         : "";
       return '<article class="serv-card reveal" data-service-card data-cursor="detalhes" tabindex="0" role="button" aria-expanded="false" aria-controls="serv-detail-' + idx + '">' +
         "<h3>" + esc(s.name) + "</h3>" +
+        price +
+        priceTable +
         '<p class="serv-for"><b>Para:</b> ' + esc(s.forWho) + "</p>" +
         '<div class="serv-inc">' + inc + "</div>" +
         note +
@@ -189,13 +203,26 @@
     var host = $("#js-plans");
     if (!host || !DATA.plans) return;
     host.innerHTML = DATA.plans.map(function (p, i) {
-      var msg = "Olá, quero informações sobre o " + esc(p.name) + ".";
+      var price = p.price
+        ? '<div class="serv-price plan-price"><strong>' + esc(p.price) + '</strong>' +
+          (p.priceDetail ? '<span>' + esc(p.priceDetail) + '</span>' : '') +
+          '</div>'
+        : "";
+      var priceOptions = (p.priceOptions || []).map(function (opt) {
+        return '<div class="serv-price-row">' +
+          '<div><b>' + esc(opt.label) + '</b><span>' + esc(opt.detail) + '</span></div>' +
+          '<strong>' + esc(opt.value) + '</strong>' +
+          '</div>';
+      }).join("");
+      var priceTable = priceOptions ? '<div class="serv-price-table plan-price-table">' + priceOptions + '</div>' : "";
+      var msg = "Olá, quero informações sobre o plano: " + esc(p.name) + ".";
       return '<article class="plan reveal" data-cursor="WhatsApp">' +
         "<h3>" + esc(p.name) + "</h3>" +
         '<p class="sum">' + esc(p.summary) + "</p>" +
         '<p class="ideal">' + esc(p.ideal) + "</p>" +
-        '<p class="price">' + esc(p.price) + "</p>" +
-        '<button class="btn btn-wa" data-wa="' + encodeURIComponent(msg) + '">' + ICON_WA + "Consultar</button>" +
+        price +
+        priceTable +
+        '<button class="btn btn-wa" data-wa="' + encodeURIComponent(msg) + '">' + ICON_WA + "Contratar</button>" +
         "</article>";
     }).join("");
   }
