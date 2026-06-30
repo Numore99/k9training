@@ -1,0 +1,3 @@
+Coloque aqui os videos dos servicos (.mp4).
+O nome do arquivo deve ser igual ao campo "video" em lib/manifest.js.
+Ex: obediencia-basica.mp4, guarda-protecao.mp4, show-dog.mp4

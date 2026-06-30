@@ -50,6 +50,12 @@
           "</div>"
         : "";
       var msg = "Olá, tenho interesse no serviço: " + esc(s.name) + ". Quero mais informações.";
+      var videoBtn = s.video
+        ? '<button type="button" class="btn btn-ghost serv-video" ' +
+          'data-serv-video="assets/video/serv/' + esc(s.video) + '" ' +
+          'data-serv-title="' + esc(s.name) + '" data-cursor="ver vídeo">' +
+          ICON_PLAY + "Ver vídeo</button>"
+        : "";
       return '<article class="serv-card reveal" data-service-card data-cursor="detalhes" tabindex="0" role="button" aria-expanded="false" aria-controls="serv-detail-' + idx + '">' +
         "<h3>" + esc(s.name) + "</h3>" +
         '<p class="serv-for"><b>Para:</b> ' + esc(s.forWho) + "</p>" +
@@ -57,7 +63,10 @@
         note +
         detailBlock +
         '<span class="serv-more">Ver explicação</span>' +
+        '<div class="serv-actions">' +
+        videoBtn +
         '<button class="btn btn-fire" data-wa="' + encodeURIComponent(msg) + '">' + esc(s.cta) + "</button>" +
+        "</div>" +
         "</article>";
     }).join("");
   }
@@ -79,6 +88,71 @@
         ev.preventDefault();
         toggle();
       });
+    });
+  }
+
+  // Lightbox de vídeo para os serviços. Cria um único modal reaproveitável.
+  function wireServiceVideos() {
+    var triggers = $all("[data-serv-video]");
+    if (!triggers.length) return;
+
+    var box = document.createElement("div");
+    box.className = "vbox";
+    box.setAttribute("aria-hidden", "true");
+    box.innerHTML =
+      '<div class="vbox-backdrop" data-vbox-close></div>' +
+      '<div class="vbox-inner" role="dialog" aria-modal="true" aria-label="Vídeo do serviço">' +
+      '<button type="button" class="vbox-close" data-vbox-close aria-label="Fechar vídeo">&times;</button>' +
+      '<h4 class="vbox-title"></h4>' +
+      '<div class="vbox-stage">' +
+      '<video class="vbox-video" controls playsinline preload="metadata"></video>' +
+      '<div class="vbox-soon">' + ICON_PLAY + "<span>Vídeo em breve</span></div>" +
+      "</div></div>";
+    document.body.appendChild(box);
+
+    var video = box.querySelector(".vbox-video");
+    var title = box.querySelector(".vbox-title");
+    var soon = box.querySelector(".vbox-soon");
+
+    video.addEventListener("error", function () {
+      box.classList.add("no-video");
+      video.removeAttribute("src");
+    });
+    video.addEventListener("loadeddata", function () {
+      box.classList.remove("no-video");
+    });
+
+    function open(src, label) {
+      box.classList.remove("no-video");
+      title.textContent = label || "";
+      video.setAttribute("src", src);
+      video.load();
+      box.classList.add("open");
+      box.setAttribute("aria-hidden", "false");
+      document.body.classList.add("vbox-lock");
+      var p = video.play();
+      if (p && p.catch) p.catch(function () {});
+    }
+    function close() {
+      box.classList.remove("open");
+      box.setAttribute("aria-hidden", "true");
+      document.body.classList.remove("vbox-lock");
+      try { video.pause(); } catch (e) {}
+      video.removeAttribute("src");
+      video.load();
+    }
+
+    triggers.forEach(function (btn) {
+      btn.addEventListener("click", function (e) {
+        e.stopPropagation();
+        open(btn.getAttribute("data-serv-video"), btn.getAttribute("data-serv-title"));
+      });
+    });
+    $all("[data-vbox-close]", box).forEach(function (el) {
+      el.addEventListener("click", close);
+    });
+    document.addEventListener("keydown", function (e) {
+      if (e.key === "Escape" && box.classList.contains("open")) close();
     });
   }
 
@@ -268,6 +342,48 @@
         });
       }, { passive: true });
 
+      // ---- AUTOPLAY: o carrossel desliza sozinho; pausa quando o usuário interage ----
+      var AUTO_MS = 3800, RESUME_MS = 6000;
+      var prefersReduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      var autoTimer = null, resumeTimer = null;
+      function autoNext() {
+        var count = items().length;
+        if (count <= 1) return;
+        var i = index();
+        go(i >= count - 1 ? 0 : i + 1); // volta ao início ao chegar no fim
+      }
+      function startAuto() {
+        if (prefersReduced || autoTimer || items().length <= 1) return;
+        autoTimer = window.setInterval(autoNext, AUTO_MS);
+      }
+      function stopAuto() {
+        if (autoTimer) { window.clearInterval(autoTimer); autoTimer = null; }
+      }
+      function pauseAuto() {
+        stopAuto();
+        if (resumeTimer) { window.clearTimeout(resumeTimer); resumeTimer = null; }
+      }
+      function resumeAutoSoon() {
+        if (prefersReduced) return;
+        if (resumeTimer) window.clearTimeout(resumeTimer);
+        resumeTimer = window.setTimeout(startAuto, RESUME_MS);
+      }
+      // qualquer interação pausa; retoma sozinho um tempo depois
+      viewport.addEventListener("pointerenter", pauseAuto);
+      viewport.addEventListener("pointerleave", resumeAutoSoon);
+      viewport.addEventListener("pointerdown", pauseAuto);
+      viewport.addEventListener("pointerup", resumeAutoSoon);
+      viewport.addEventListener("touchstart", pauseAuto, { passive: true });
+      viewport.addEventListener("touchend", resumeAutoSoon, { passive: true });
+      viewport.addEventListener("wheel", function () { pauseAuto(); resumeAutoSoon(); }, { passive: true });
+      [prev, next].forEach(function (b) { if (b) b.addEventListener("click", function () { pauseAuto(); resumeAutoSoon(); }); });
+      dots.forEach(function (d) { d.addEventListener("click", function () { pauseAuto(); resumeAutoSoon(); }); });
+      // pausa quando a aba não está visível (economiza recursos)
+      document.addEventListener("visibilitychange", function () {
+        if (document.hidden) stopAuto(); else resumeAutoSoon();
+      });
+      startAuto();
+
       update();
     });
   }
@@ -444,6 +560,7 @@
   function boot() {
   safe(renderServices, "services");
   safe(wireServiceCards, "service-cards");
+  safe(wireServiceVideos, "service-videos");
   safe(renderPlans, "plans");
     safe(renderGallery, "gallery");
     safe(wireGalleryCarousel, "gallery-carousel");
