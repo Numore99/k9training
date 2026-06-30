@@ -50,11 +50,14 @@
           "</div>"
         : "";
       var msg = "Olá, tenho interesse no serviço: " + esc(s.name) + ". Quero mais informações.";
-      var videoBtn = s.video
+      // aceita "videos" (lista) e também o antigo "video" (texto), por compatibilidade
+      var vids = (s.videos || (s.video ? [s.video] : [])).filter(Boolean);
+      var paths = vids.map(function (v) { return "assets/video/serv/" + v; });
+      var videoBtn = vids.length
         ? '<button type="button" class="btn btn-ghost serv-video" ' +
-          'data-serv-video="assets/video/serv/' + esc(s.video) + '" ' +
+          'data-serv-video="' + esc(paths.join("|")) + '" ' +
           'data-serv-title="' + esc(s.name) + '" data-cursor="ver vídeo">' +
-          ICON_PLAY + "Ver vídeo</button>"
+          ICON_PLAY + (vids.length > 1 ? "Ver vídeos" : "Ver vídeo") + "</button>"
         : "";
       return '<article class="serv-card reveal" data-service-card data-cursor="detalhes" tabindex="0" role="button" aria-expanded="false" aria-controls="serv-detail-' + idx + '">' +
         "<h3>" + esc(s.name) + "</h3>" +
@@ -107,12 +110,15 @@
       '<div class="vbox-stage">' +
       '<video class="vbox-video" controls playsinline preload="metadata"></video>' +
       '<div class="vbox-soon">' + ICON_PLAY + "<span>Vídeo em breve</span></div>" +
-      "</div></div>";
+      "</div>" +
+      '<div class="vbox-tabs"></div>' +
+      "</div>";
     document.body.appendChild(box);
 
     var video = box.querySelector(".vbox-video");
     var title = box.querySelector(".vbox-title");
-    var soon = box.querySelector(".vbox-soon");
+    var tabs = box.querySelector(".vbox-tabs");
+    var current = [];
 
     video.addEventListener("error", function () {
       box.classList.add("no-video");
@@ -122,16 +128,34 @@
       box.classList.remove("no-video");
     });
 
-    function open(src, label) {
+    function load(i) {
+      if (!current[i]) return;
       box.classList.remove("no-video");
-      title.textContent = label || "";
-      video.setAttribute("src", src);
+      $all(".vbox-tab", tabs).forEach(function (t) {
+        t.classList.toggle("active", Number(t.getAttribute("data-i")) === i);
+      });
+      video.setAttribute("src", current[i]);
       video.load();
+      var p = video.play();
+      if (p && p.catch) p.catch(function () {});
+    }
+    function open(srcs, label) {
+      current = (srcs || "").split("|").filter(Boolean);
+      title.textContent = label || "";
+      if (current.length > 1) {
+        tabs.style.display = "";
+        tabs.innerHTML = current.map(function (_, i) {
+          return '<button type="button" class="vbox-tab' + (i === 0 ? " active" : "") +
+            '" data-i="' + i + '">Vídeo ' + (i + 1) + "</button>";
+        }).join("");
+      } else {
+        tabs.style.display = "none";
+        tabs.innerHTML = "";
+      }
       box.classList.add("open");
       box.setAttribute("aria-hidden", "false");
       document.body.classList.add("vbox-lock");
-      var p = video.play();
-      if (p && p.catch) p.catch(function () {});
+      load(0);
     }
     function close() {
       box.classList.remove("open");
@@ -141,6 +165,11 @@
       video.removeAttribute("src");
       video.load();
     }
+
+    tabs.addEventListener("click", function (e) {
+      var t = e.target.closest(".vbox-tab");
+      if (t) load(Number(t.getAttribute("data-i")));
+    });
 
     triggers.forEach(function (btn) {
       btn.addEventListener("click", function (e) {

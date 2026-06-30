@@ -1,3 +1,9 @@
-Coloque aqui os videos dos servicos (.mp4).
-O nome do arquivo deve ser igual ao campo "video" em lib/manifest.js.
-Ex: obediencia-basica.mp4, guarda-protecao.mp4, show-dog.mp4
+Videos dos servicos (.mp4). Pode ter 1, 2 ou mais por servico.
+
+1) Copie os arquivos .mp4 para esta pasta.
+2) Em lib/manifest.js, no servico, liste os nomes em 'videos'. Ex:
+     videos: ["guarda-protecao-1.mp4", "guarda-protecao-2.mp4"]
+3) O botao mostra 'Ver videos' (2+) ou 'Ver video' (1).
+   Lista vazia (videos: []) = sem botao.
+
+Sugestao de nomes: nome-do-servico-1.mp4, nome-do-servico-2.mp4

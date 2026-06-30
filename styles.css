@@ -307,6 +307,12 @@ body.vbox-lock{overflow:hidden;}
 .vbox-soon svg{width:42px;height:42px;color:var(--gold);opacity:.7;}
 .vbox.no-video .vbox-video{visibility:hidden;}
 .vbox.no-video .vbox-soon{display:flex;}
+.vbox-tabs{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px;}
+.vbox-tab{font-family:'Space Mono',monospace;font-size:11px;letter-spacing:1px;text-transform:uppercase;
+  color:var(--muted);background:rgba(5,4,3,.72);border:1px solid var(--line);padding:9px 16px;cursor:pointer;
+  transition:color .2s,border-color .2s,background .2s;}
+.vbox-tab:hover{color:var(--bone);border-color:var(--fire-line);}
+.vbox-tab.active{color:var(--carbon);background:var(--fire);border-color:var(--fire);}
 .home-serv-grid{
   gap:28px;border:0;background:transparent;max-width:1040px;margin:0 auto;
 }
