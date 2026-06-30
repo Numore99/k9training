@@ -240,10 +240,8 @@
       });
 
       var SPEED = 0.05;       // px por milissegundo (~50px/s) — fotos para a esquerda
-      var RESUME_MS = 2500;   // retoma sozinho um tempo depois de soltar
       var prefersReduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
       var paused = prefersReduced;
-      var resumeTimer = null;
       var lastT = 0;
       var cw = 0; // largura de um ciclo (todos os originais + gaps)
 
@@ -274,12 +272,11 @@
 
       function pause() {
         paused = true;
-        if (resumeTimer) { window.clearTimeout(resumeTimer); resumeTimer = null; }
       }
       function resumeSoon() {
         if (prefersReduced) return;
-        if (resumeTimer) window.clearTimeout(resumeTimer);
-        resumeTimer = window.setTimeout(function () { lastT = 0; paused = false; }, RESUME_MS);
+        lastT = 0;       // reinicia o relógio para não dar salto
+        paused = false;  // volta a correr na hora que solta
       }
 
       // ---------- ARRASTAR COM MOUSE ----------
