@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://numore99.github.io/k9training/sitemap.xml
