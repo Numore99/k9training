@@ -34,6 +34,7 @@
   var ICON_WA = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M.057 24l1.687-6.163a11.867 11.867 0 01-1.587-5.946C.16 5.335 5.495 0 12.05 0a11.82 11.82 0 018.413 3.488 11.82 11.82 0 013.48 8.414c-.003 6.557-5.338 11.892-11.893 11.892a11.9 11.9 0 01-5.688-1.448L.057 24zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884a9.86 9.86 0 001.51 5.26l-.999 3.648 3.477-.708zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/></svg>';
   var ICON_PAW = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="6" cy="9" r="2"/><circle cx="10.5" cy="6" r="2"/><circle cx="15" cy="6" r="2"/><circle cx="18" cy="9" r="2"/><path d="M8 16c0-2 2-4 4-4s4 2 4 4 1.5 3-1 3.5c-1.2.24-2-.5-3-.5s-1.8.74-3 .5c-2.5-.5-1-1.5-1-3.5z"/></svg>';
   var ICON_PLAY = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>';
+  var ICON_TAP = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 11V6a1.5 1.5 0 013 0v5"/><path d="M12 11V4.5a1.5 1.5 0 013 0V11"/><path d="M15 11V6.5a1.5 1.5 0 013 0V15a5 5 0 01-5 5h-2.5a4 4 0 01-3-1.35l-3-3.4a1.5 1.5 0 012.2-2l1.8 1.75V8a1.5 1.5 0 013 0v3"/></svg>';
 
   function renderServices() {
     var host = $("#js-services");
@@ -48,7 +49,7 @@
         : "";
       var priceOptions = (s.priceOptions || []).map(function (p) {
         return '<div class="serv-price-row">' +
-          '<div><b>' + esc(p.label) + '</b><span>' + esc(p.detail) + '</span></div>' +
+          '<div><b>' + esc(p.label) + '</b>' + (p.detail ? '<span>' + esc(p.detail) + '</span>' : '') + '</div>' +
           '<strong>' + esc(p.value) + '</strong>' +
           '</div>';
       }).join("");
@@ -201,8 +202,9 @@
 
   function renderPlans() {
     var host = $("#js-plans");
-    if (!host || !DATA.plans) return;
-    host.innerHTML = DATA.plans.map(function (p, i) {
+    if (!host) return;
+
+    function planCard(p, shouldReveal) {
       var price = p.price
         ? '<div class="serv-price plan-price"><strong>' + esc(p.price) + '</strong>' +
           (p.priceDetail ? '<span>' + esc(p.priceDetail) + '</span>' : '') +
@@ -210,13 +212,14 @@
         : "";
       var priceOptions = (p.priceOptions || []).map(function (opt) {
         return '<div class="serv-price-row">' +
-          '<div><b>' + esc(opt.label) + '</b><span>' + esc(opt.detail) + '</span></div>' +
+          '<div><b>' + esc(opt.label) + '</b>' + (opt.detail ? '<span>' + esc(opt.detail) + '</span>' : '') + '</div>' +
           '<strong>' + esc(opt.value) + '</strong>' +
           '</div>';
       }).join("");
       var priceTable = priceOptions ? '<div class="serv-price-table plan-price-table">' + priceOptions + '</div>' : "";
-      var msg = "Olá, quero informações sobre o plano: " + esc(p.name) + ".";
-      return '<article class="plan reveal" data-cursor="WhatsApp">' +
+      var msg = "Olá, quero informações sobre o plano: " + p.name + ".";
+      var revealClass = shouldReveal ? " reveal" : " reveal force";
+      return '<article class="plan' + revealClass + '" data-cursor="WhatsApp">' +
         "<h3>" + esc(p.name) + "</h3>" +
         '<p class="sum">' + esc(p.summary) + "</p>" +
         '<p class="ideal">' + esc(p.ideal) + "</p>" +
@@ -224,7 +227,57 @@
         priceTable +
         '<button class="btn btn-wa" data-wa="' + encodeURIComponent(msg) + '">' + ICON_WA + "Contratar</button>" +
         "</article>";
-    }).join("");
+    }
+
+    function cards(plans, shouldReveal) {
+      return '<div class="plans">' + plans.map(function (p) {
+        return planCard(p, shouldReveal);
+      }).join("") + "</div>";
+    }
+
+    var groups = DATA.planGroups || (DATA.plans ? [{
+      id: "planos",
+      name: "Planos",
+      description: "Escolha o melhor formato para começar.",
+      plans: DATA.plans
+    }] : []);
+    if (!groups.length) return;
+
+    if (groups.length === 1) {
+      host.innerHTML = cards(groups[0].plans, true);
+      return;
+    }
+
+    host.classList.add("plan-shell");
+    host.innerHTML = '<div class="plan-tabs" role="tablist" aria-label="Categorias de planos">' +
+      groups.map(function (group, i) {
+        return '<button type="button" class="plan-tab' + (i === 0 ? " active" : "") + '" data-plan-group="' + i + '" role="tab" aria-selected="' + (i === 0 ? "true" : "false") + '">' +
+          '<span class="plan-tab-hint" aria-hidden="true">' + ICON_TAP + 'Clique aqui</span>' +
+          '<strong>' + esc(group.name) + '</strong>' +
+          '<span>' + esc(group.description || "") + '</span>' +
+          '</button>';
+      }).join("") +
+      '</div><div class="plan-panel" data-plan-panel></div>';
+
+    var panel = host.querySelector("[data-plan-panel]");
+    var tabs = $all("[data-plan-group]", host);
+    function setGroup(i, shouldReveal) {
+      var group = groups[i];
+      if (!group || !panel) return;
+      panel.innerHTML = cards(group.plans, shouldReveal);
+      tabs.forEach(function (tab) {
+        var active = Number(tab.getAttribute("data-plan-group")) === i;
+        tab.classList.toggle("active", active);
+        tab.setAttribute("aria-selected", active ? "true" : "false");
+      });
+    }
+
+    tabs.forEach(function (tab) {
+      tab.addEventListener("click", function () {
+        setGroup(Number(tab.getAttribute("data-plan-group")), false);
+      });
+    });
+    setGroup(0, true);
   }
 
   function renderGallery() {
